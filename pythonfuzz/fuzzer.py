@@ -42,14 +42,15 @@ class Fuzzer(object):
                  rss_limit_mb=2048,
                  timeout=120,
                  regression=False,
-                 max_input_size=4096):
+                 max_input_size=4096,
+                 dict_path=None):
         self._target = target
         self._dirs = [] if dirs is None else dirs
         self._exact_artifact_path = exact_artifact_path
         self._rss_limit_mb = rss_limit_mb
         self._timeout = timeout
         self._regression = regression
-        self._corpus = corpus.Corpus(self._dirs, max_input_size)
+        self._corpus = corpus.Corpus(self._dirs, max_input_size, dict_path)
         self._total_executions = 0
         self._executions_in_sample = 0
         self._last_sample_time = time.time()

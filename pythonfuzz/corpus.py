@@ -5,6 +5,8 @@ import random
 import struct
 import hashlib
 
+from . import dictionnary
+
 
 INTERESTING8 = [-128, -1, 0, 1, 16, 32, 64, 100, 127]
 INTERESTING16 = [-32768, -129, 128, 255, 256, 512, 1000, 1024, 4096, 32767]
@@ -12,8 +14,9 @@ INTERESTING32 = [-2147483648, -100663046, -32769, 32768, 65535, 65536, 100663045
 
 
 class Corpus(object):
-    def __init__(self, dirs=None, max_input_size=4096):
+    def __init__(self, dirs=None, max_input_size=4096, dict_path=None):
         self._inputs = []
+        self._dict = dictionnary.Dictionary(dict_path)
         self._max_input_size = max_input_size
         self._dirs = [] if dirs is None else dirs
         for i, path in enumerate(dirs):
@@ -104,9 +107,9 @@ class Corpus(object):
         res = buf[:]
         nm = self._rand_exp()
         for i in range(nm):
-            # Remove a range of bytes.
-            x = self._rand(15)
+            x = self._rand(16)
             if x == 0:
+                # Remove a range of bytes.
                 if len(self._inputs) <= 1:
                     i -= 1
                     continue
@@ -279,6 +282,19 @@ class Corpus(object):
                 while was == now:
                     now = self._rand(10) + ord('0')
                 res[digits[pos]] = now
+            elif x == 15:
+                # Insert a word at a random position
+                word = self._dict.get_word()
+                if not word:
+                    i -= 1
+                    continue
+                pos = self._rand(len(res) + 1)
+                for _ in word:
+                    res.append(0)
+                self.copy(res, res, pos, pos+len(word))
+                for k in range(len(word)):
+                    res[pos+k] = ord(word[k])
+
 
         if len(res) > self._max_input_size:
             res = res[:self._max_input_size]
